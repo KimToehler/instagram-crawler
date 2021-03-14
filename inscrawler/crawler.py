@@ -18,10 +18,10 @@ from .exceptions import RetryException
 from .fetch import fetch_caption
 from .fetch import fetch_comments
 from .fetch import fetch_datetime
+from .fetch import fetch_details
 from .fetch import fetch_imgs
 from .fetch import fetch_likers
 from .fetch import fetch_likes_plays
-from .fetch import fetch_details
 from .utils import instagram_int
 from .utils import randmized_sleep
 from .utils import retry
@@ -72,7 +72,7 @@ class InsCrawler(Logging):
     def _dismiss_login_prompt(self):
         ele_login = self.browser.find_one(".Ls00D .Szr5J")
         if ele_login:
-            ele_login.click()
+            self.browser.js_click(ele_login)
 
     def login(self):
         browser = self.browser
@@ -84,7 +84,7 @@ class InsCrawler(Logging):
         p_input.send_keys(secret.password)
 
         login_btn = browser.find_one(".L3NKy")
-        login_btn.click()
+        self.browser.js_click(login_btn)
 
         @retry()
         def check_login():
@@ -147,7 +147,7 @@ class InsCrawler(Logging):
     def get_latest_posts_by_tag(self, tag, num):
         url = "%s/explore/tags/%s/" % (InsCrawler.URL, tag)
         self.browser.get(url)
-        return self._get_posts(num)
+        return self._get_posts(1)
 
     def auto_like(self, tag="", maximum=1000):
         self.login()
@@ -159,17 +159,17 @@ class InsCrawler(Logging):
         self.browser.get(url)
 
         ele_post = browser.find_one(".v1Nh3 a")
-        ele_post.click()
+        self.browser.js_click(ele_post)
 
         for _ in range(maximum):
             heart = browser.find_one(".dCJp8 .glyphsSpriteHeart__outline__24__grey_9")
             if heart:
-                heart.click()
+                self.browser.js_click(heart)
                 randmized_sleep(2)
 
             left_arrow = browser.find_one(".HBoOv")
             if left_arrow:
-                left_arrow.click()
+                self.browser.js_click(left_arrow)
                 randmized_sleep(2)
             else:
                 break
@@ -191,7 +191,7 @@ class InsCrawler(Logging):
         browser.implicitly_wait(1)
         browser.scroll_down()
         ele_post = browser.find_one(".v1Nh3 a")
-        ele_post.click()
+        self.browser.js_click(ele_post)
         dict_posts = {}
 
         pbar = tqdm(total=num)
@@ -207,7 +207,7 @@ class InsCrawler(Logging):
 
             # Fetching post detail
             try:
-                if(i < num):
+                if i < num:
                     check_next_post(all_posts[i]['key'])
                     i = i + 1
 
@@ -236,9 +236,9 @@ class InsCrawler(Logging):
                 sys.stderr.write(
                     "\x1b[1;31m"
                     + "Failed to fetch the post: "
-                    + cur_key if isinstance(cur_key,str) else 'URL not fetched'
-                    + "\x1b[0m"
-                    + "\n"
+                    + cur_key if isinstance(cur_key, str) else 'URL not fetched'
+                                                               + "\x1b[0m"
+                                                               + "\n"
                 )
                 traceback.print_exc()
 
@@ -249,8 +249,8 @@ class InsCrawler(Logging):
 
         pbar.close()
         posts = list(dict_posts.values())
-        if posts:
-            posts.sort(key=lambda post: post["datetime"], reverse=True)
+        # if posts:
+        #     posts.sort(key=lambda post: post["datetime"], reverse=True)
         return posts
 
     def _get_posts(self, num):
@@ -272,7 +272,7 @@ class InsCrawler(Logging):
             for ele in ele_posts:
                 key = ele.get_attribute("href")
                 if key not in key_set:
-                    dict_post = { "key": key }
+                    dict_post = {"key": key}
                     ele_img = browser.find_one(".KL4Bh img", ele)
                     dict_post["caption"] = ele_img.get_attribute("alt")
                     dict_post["img_url"] = ele_img.get_attribute("src")

@@ -24,6 +24,7 @@ def fetch_mentions(raw_test, dict_obj):
     if mentions:
         dict_obj["mentions"] = mentions
 
+
 def fetch_hashtags(raw_test, dict_obj):
     if not settings.fetch_hashtags:
         return
@@ -53,12 +54,13 @@ def fetch_imgs(browser, dict_post):
         next_photo_btn = browser.find_one("._6CZji .coreSpriteRightChevron")
 
         if next_photo_btn:
-            next_photo_btn.click()
+            browser.js_click(next_photo_btn)
             sleep(0.3)
         else:
             break
 
     dict_post["img_urls"] = list(img_urls)
+
 
 def fetch_likes_plays(browser, dict_post):
     if not settings.fetch_likes_plays:
@@ -71,10 +73,10 @@ def fetch_likes_plays(browser, dict_post):
     if el_see_likes is not None:
         el_plays = browser.find_one(".vcOH2 > span")
         dict_post["views"] = int(el_plays.text.replace(",", "").replace(".", ""))
-        el_see_likes.click()
+        browser.js_click(el_see_likes)
         el_likes = browser.find_one(".vJRqr > span")
         likes = el_likes.text
-        browser.find_one(".QhbhU").click()
+        browser.js_click(browser.find_one(".QhbhU"))
 
     elif el_likes is not None:
         likes = el_likes.text
@@ -87,11 +89,11 @@ def fetch_likes_plays(browser, dict_post):
 def fetch_likers(browser, dict_post):
     if not settings.fetch_likers:
         return
-    like_info_btn = browser.find_one(".EDfFK ._0mzm-.sqdOP")
-    like_info_btn.click()
+    like_info_btn = browser.find_one(".EDfFK a")
+    browser.js_click(like_info_btn)
 
     likers = {}
-    liker_elems_css_selector = ".Igw0E ._7UhW9.xLCgt a"
+    liker_elems_css_selector = ".Igw0E ._7UhW9.xLCgt .Jv7Aj a"
     likers_elems = list(browser.find(liker_elems_css_selector))
     last_liker = None
     while likers_elems:
@@ -108,7 +110,7 @@ def fetch_likers(browser, dict_post):
 
     dict_post["likers"] = list(likers.values())
     close_btn = browser.find_one(".WaOAr button")
-    close_btn.click()
+    browser.js_click(close_btn)
 
 
 def fetch_caption(browser, dict_post):
@@ -116,15 +118,15 @@ def fetch_caption(browser, dict_post):
 
     if len(ele_comments) > 0:
 
-        temp_element = browser.find("span",ele_comments[0])
+        temp_element = browser.find("span", ele_comments[0])
 
         for element in temp_element:
 
-            if element.text not in ['Verified',''] and 'caption' not in dict_post:
+            if element.text not in ['Verified', '']:
                 dict_post["caption"] = element.text
 
-        fetch_mentions(dict_post.get("caption",""), dict_post)
-        fetch_hashtags(dict_post.get("caption",""), dict_post)
+        fetch_mentions(dict_post.get("caption", ""), dict_post)
+        fetch_hashtags(dict_post.get("caption", ""), dict_post)
 
 
 def fetch_comments(browser, dict_post):
@@ -135,26 +137,26 @@ def fetch_comments(browser, dict_post):
     show_more = browser.find_one(show_more_selector)
     while show_more:
         show_more.location_once_scrolled_into_view
-        show_more.click()
+        browser.js_click(show_more)
         sleep(0.3)
         show_more = browser.find_one(show_more_selector)
 
     show_comment_btns = browser.find(".EizgU")
     for show_comment_btn in show_comment_btns:
         show_comment_btn.location_once_scrolled_into_view
-        show_comment_btn.click()
+        browser.js_click(show_comment_btn)
         sleep(0.3)
 
     ele_comments = browser.find(".eo2As .gElp9")
     comments = []
     for els_comment in ele_comments[1:]:
-        author = browser.find_one(".FPmhX", els_comment).text
+        author = browser.find_one(".Igw0E a", els_comment).text
 
         temp_element = browser.find("span", els_comment)
 
         for element in temp_element:
 
-            if element.text not in ['Verified','']:
+            if element.text not in ['Verified', '']:
                 comment = element.text
 
         comment_obj = {"author": author, "comment": comment}
@@ -192,5 +194,8 @@ def fetch_details(browser, dict_post):
         dict_post["location"] = location.text
 
     fetch_initial_comment(browser, dict_post)
+    fetch_caption(browser, dict_post)
+    fetch_comments(browser, dict_post)
+    fetch_likers(browser, dict_post)
 
     browser.close_current_tab()
