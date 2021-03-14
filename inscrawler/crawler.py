@@ -147,7 +147,7 @@ class InsCrawler(Logging):
     def get_latest_posts_by_tag(self, tag, num):
         url = "%s/explore/tags/%s/" % (InsCrawler.URL, tag)
         self.browser.get(url)
-        return self._get_posts(1)
+        return self._get_posts(num)
 
     def auto_like(self, tag="", maximum=1000):
         self.login()
