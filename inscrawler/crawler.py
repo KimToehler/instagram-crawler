@@ -76,7 +76,7 @@ class InsCrawler(Logging):
 
     def login(self):
         browser = self.browser
-        url = "%s/accounts/login/" % (InsCrawler.URL)
+        url = "%s/accounts/login/" % InsCrawler.URL
         browser.get(url)
         u_input = browser.find_one('input[name="username"]')
         u_input.send_keys(secret.username)
@@ -85,6 +85,7 @@ class InsCrawler(Logging):
 
         login_btn = browser.find_one(".L3NKy")
         self.browser.js_click(login_btn)
+        sleep(5)
 
         @retry()
         def check_login():

@@ -110,7 +110,8 @@ def fetch_likers(browser, dict_post):
 
     dict_post["likers"] = list(likers.values())
     close_btn = browser.find_one(".WaOAr button")
-    browser.js_click(close_btn)
+    if close_btn is not None:
+        browser.js_click(close_btn)
 
 
 def fetch_caption(browser, dict_post):
@@ -151,6 +152,7 @@ def fetch_comments(browser, dict_post):
     comments = []
     for els_comment in ele_comments[1:]:
         author = browser.find_one(".Igw0E a", els_comment).text
+        comment = ""
 
         temp_element = browser.find("span", els_comment)
 
